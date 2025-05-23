@@ -2,8 +2,11 @@
 
 <img src="./assets/images/ultima.jpeg" width="128">
 
-**Ultima Gateway**
+<p>
+<strong>Ultima Gateway</strong><br>
 Bypass all you can imagine
+</p>
+
 </div>
 
 
