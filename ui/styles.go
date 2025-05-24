@@ -22,11 +22,16 @@ var termWidth, termHeight, _ = term.GetSize(os.Stdout.Fd())
 var TextStyle = lipgloss.NewStyle().
 	Foreground(lipgloss.Color("#943ddb"))
 
-var TextInput = lipgloss.NewStyle().
-	Border(lipgloss.RoundedBorder()).
-	BorderForeground(lipgloss.Color("#FFFFFF"))
+var WhiteText = lipgloss.NewStyle().
+	Foreground(lipgloss.Color("#FFFFFF"))
 
-var TextStyle1 = lipgloss.NewStyle().
+var TextInput = lipgloss.NewStyle().
+	Border(lipgloss.HiddenBorder()).
+	Align(lipgloss.Center).
+	AlignHorizontal(lipgloss.Center)
+
+var Text = lipgloss.NewStyle().
+	Align(lipgloss.Center).
 	Foreground(lipgloss.Color("#FFFFFF")).
 	Bold(true).
 	Margin(1, 2)
@@ -61,10 +66,13 @@ var CenterView = lipgloss.NewStyle().
 var CenterText = lipgloss.NewStyle().
 	Bold(true).
 	Width(termWidth).
-	AlignHorizontal(lipgloss.Center)
+	Align(lipgloss.Center)
 
-var GreenCheck = lipgloss.NewStyle().
+var GreenColor = lipgloss.NewStyle().
 	Foreground(lipgloss.Color("#2bd94b"))
+
+var RedColor = lipgloss.NewStyle().
+	Foreground(lipgloss.Color("#ff1212"))
 
 var CenterBottomText = lipgloss.NewStyle().
 	Foreground(lipgloss.Color("#8a8a8a")).
@@ -76,6 +84,10 @@ var CenterBottomText = lipgloss.NewStyle().
 var TextWarning = lipgloss.NewStyle().
 	Bold(true).
 	Foreground(lipgloss.Color("#FFCC00"))
+
+var EnhanceText = lipgloss.NewStyle().
+	Bold(true).
+	Foreground(lipgloss.Color("#00BFFF"))
 
 func HelpText(key, info string) string {
 	bold := lipgloss.NewStyle().

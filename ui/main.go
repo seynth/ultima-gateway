@@ -11,7 +11,6 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
 
 type JSON struct {
@@ -31,7 +30,6 @@ type Ultima struct {
 	genConfKeyHash GenerateConfigKeyHash
 	jsonObject     JSON
 
-	progress      bool
 	message       string
 	isSubmit      bool
 	completed     bool
@@ -46,16 +44,13 @@ func UltimaInit() Ultima {
 	ti := textinput.New()
 	ti.Prompt = ""
 	ti.Placeholder = " \"I need config file . . .\""
-	ti.PlaceholderStyle.AlignHorizontal(lipgloss.Center)
 	ti.Focus()
-	ti.Width = 60
 
 	s := spinner.New()
-	s.Spinner = spinner.MiniDot
-	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	s.Spinner = spinner.Points
+	s.Style = EnhanceText
 
 	return Ultima{
-		progress:       false,
 		input:          ti,
 		spinner:        s,
 		genConfKeyHash: GenerateConfigKeyHash{},
@@ -64,7 +59,7 @@ func UltimaInit() Ultima {
 }
 
 func (ult Ultima) Init() tea.Cmd {
-	return ult.spinner.Tick
+	return nil
 }
 
 func (ult Ultima) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -75,7 +70,6 @@ func (ult Ultima) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case tea.KeyEnter:
 				if ult.input.Value() != "" {
 					ult.isSubmit = true
-					ult.progress = true
 					ult.statusCode = 0
 
 					return ult, tea.Batch(
@@ -97,7 +91,7 @@ func (ult Ultima) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case model.ReadAndConvert:
 		ult.genConfKeyHash.pureJson = msg.EncodedContent
 		if len(ult.genConfKeyHash.pureJson) > 0 {
-			s := fmt.Sprintf("%s Success converting to json", GreenCheck.Render("✓"))
+			s := fmt.Sprintf("Ultima is %s", GreenColor.Render("online"))
 			ult.completedStep = append(ult.completedStep, s)
 			ult.statusCode = 2
 			return ult, tea.Tick(2*time.Second, func(t time.Time) tea.Msg {
@@ -109,7 +103,7 @@ func (ult Ultima) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch ult.statusCode {
 			case 0:
 				ult.statusCode = 1
-				ult.statusNext = "Converting to Json . . ."
+				ult.statusNext = "Starting Ultima Gateway"
 				return ult, tea.Tick(1*time.Second, func(t time.Time) tea.Msg {
 					return tickMsg(t)
 				})
@@ -121,39 +115,24 @@ func (ult Ultima) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case 2:
 				ult.statusCode = 3
 				json.Unmarshal([]byte(ult.genConfKeyHash.pureJson), &ult.jsonObject)
-				ult.statusNext = "Generating hash with Sha256 and encode config json"
-				s := fmt.Sprintf("%s Found startURL -> %s", GreenCheck.Render("✓"), LinkStyle.Render(ult.jsonObject.StartURL))
-				ult.completedStep = append(ult.completedStep, s)
-				return ult, tea.Tick(1*time.Second, func(t time.Time) tea.Msg {
+				ult.statusNext = "Enhance Feature"
+				ult.completedStep = append(ult.completedStep, "Found startURL")
+				return ult, tea.Tick(2*time.Second, func(t time.Time) tea.Msg {
 					return tickMsg(t)
 				})
 			case 3:
 				ult.statusCode = 4
-				ult.genConfKeyHash.configHash = auxiliary.Sha256Encode([]byte(ult.genConfKeyHash.pureJson))
-				if len(ult.genConfKeyHash.configHash) > 0 {
-					s := fmt.Sprintf("%s Hash generated successfully", GreenCheck.Render("✓"))
-					ult.completedStep = append(ult.completedStep, s)
-				}
-				ult.statusNext = "Appending startURL with encoded config"
-				return ult, tea.Tick(1*time.Second, func(t time.Time) tea.Msg {
-					return tickMsg(t)
-				})
+				ult.statusNext = "Starting chrome"
+				ult.completedStep = append(ult.completedStep, EnhanceText.Render("Dynamic Header Enabled"))
 			case 4:
-				ult.genConfKeyHash.plusUrl = ult.jsonObject.StartURL + ult.genConfKeyHash.configHash
-				if len(ult.genConfKeyHash.plusUrl) > 0 {
-					s := fmt.Sprintf("%s Url added", GreenCheck.Render("✓"))
-					ult.completedStep = append(ult.completedStep, s)
-					ult.statusCode = 5
-				}
-				ult.statusNext = "Starting chrome . . ."
-				return ult, tea.Tick(1*time.Second, func(t time.Time) tea.Msg {
-					return tickMsg(t)
-				})
-			case 5:
 				ult.genConfKeyHash.finalHash = auxiliary.Sha256Encode([]byte(ult.genConfKeyHash.plusUrl))
 				ult.completed = true
-				ult.progress = false
-				return ult, auxiliary.StartChrome(ult.jsonObject.StartURL, ult.genConfKeyHash.finalHash, auxiliary.Sha256Encode([]byte("random")))
+				return ult, auxiliary.StartChrome(
+					ult.jsonObject.StartURL,
+					ult.genConfKeyHash.configHash,
+					ult.genConfKeyHash.finalHash,
+					auxiliary.Sha256Encode([]byte("random")),
+				)
 
 			}
 			return ult, tea.Tick(time.Second, func(t time.Time) tea.Msg {
@@ -163,7 +142,7 @@ func (ult Ultima) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	if ult.completed {
-		ult.statusNext = "All operation done, you can close this terminal"
+		ult.statusNext = WhiteText.Render(fmt.Sprintf("You can %s this terminal but dont %s it!!", GreenColor.Render("minimize"), RedColor.Render("close")))
 	}
 
 	var cmd tea.Cmd
@@ -177,21 +156,22 @@ func (ult Ultima) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (ult Ultima) View() string {
 	var builder strings.Builder
+	subTitle := fmt.Sprintf("%s %s", EnhanceText.Render("[Enhance]"), WhiteText.Render("Bypass all you can imagine"))
+
 	builder.WriteString(TextStyle.Render(Banner))
 	builder.WriteString("\n")
-	builder.WriteString("~ Bypass all you can imagine ~")
+	builder.WriteString(subTitle)
 	builder.WriteString("\n")
-	builder.WriteString("\n")
-	if ult.progress {
-		builder.WriteString(TextWarning.Render("\n\n ⚠  WARNING: Please dont close this terminal\n"))
-		builder.WriteString("\n")
+	if ult.jsonObject.StartURL != "" {
+		builder.WriteString(LinkStyle.Render(ult.jsonObject.StartURL))
 	}
+	builder.WriteString("\n")
 
 	builder.WriteString("\n")
 	if ult.isSubmit {
 		if len(ult.completedStep) > 0 {
 			builder.WriteString(
-				TextStyle.Render(
+				Text.Render(
 					strings.Join(ult.completedStep, "\n"),
 				),
 			)
@@ -200,14 +180,11 @@ func (ult Ultima) View() string {
 
 		if !ult.completed {
 			builder.WriteString(ult.spinner.View())
-		} else {
-			// s := fmt.Sprintf("Generated Config Key Hash: %s\n", ult.genConfKeyHash.finalHash)
-			// builder.WriteString(s)
-			builder.WriteString(GreenCheck.Render("✓"))
 		}
 		builder.WriteString(" ")
-		builder.WriteString(ult.statusNext)
+		builder.WriteString(WhiteText.Render(ult.statusNext))
 
+		builder.WriteString(HelpText("esc", "quit"))
 		return CenterView.Render(builder.String())
 	}
 

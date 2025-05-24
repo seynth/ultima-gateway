@@ -3,6 +3,7 @@ package auxiliary
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"net/url"
 	"strings"
 
 	"github.com/chromedp/cdproto/fetch"
@@ -53,4 +54,11 @@ func AddAndOverwriteHeaders(customHeaders []Header, original []*fetch.HeaderEntr
 func Sha256Encode(data []byte) string {
 	hash := sha256.Sum256(data)
 	return hex.EncodeToString(hash[:])
+}
+
+func RemoveUrlFragment(ori string) string {
+	Url, _ := url.Parse(ori)
+	// TODO: Handle Error
+	Url.Fragment = ""
+	return Url.String()
 }
