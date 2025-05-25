@@ -41,7 +41,7 @@ func (ultima *Ultima) ApplySettings() error {
 	return err
 }
 
-func (ultima *Ultima) HeaderModifier(originalHash string, header []Header) {
+func (ultima *Ultima) HeaderModifier(startURL, originalHash string, header []Header) {
 	var modHeader []*fetch.HeaderEntry
 	chromedp.ListenTarget(ultima.UltimaContext, func(ev any) {
 		switch ev := ev.(type) {
@@ -55,6 +55,7 @@ func (ultima *Ultima) HeaderModifier(originalHash string, header []Header) {
 					Name:  "X-SafeExamBrowser-ConfigKeyHash",
 					Value: dynamicHeaderEncode,
 				})
+
 				chromedp.Run(ultima.UltimaContext,
 					fetch.ContinueRequest(ev.RequestID).
 						WithHeaders(modHeader),
@@ -73,7 +74,7 @@ func (ultima *Ultima) Run(url string, e *error) {
 	select {}
 }
 
-func StartChrome(startURL, originalHash, configKeyHash, requestHash string) tea.Cmd {
+func StartChrome(startURL, originalHash, requestHash string) tea.Cmd {
 	return func() tea.Msg {
 		var errRun error
 		ultx, cancel := Init()
@@ -96,7 +97,7 @@ func StartChrome(startURL, originalHash, configKeyHash, requestHash string) tea.
 			},
 		}
 
-		ultima.HeaderModifier(originalHash, customHeaders)
+		ultima.HeaderModifier(startURL, originalHash, customHeaders)
 		ultima.Run(startURL, &errRun)
 		return model.ChromeHandler{}
 	}

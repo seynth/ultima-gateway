@@ -17,6 +17,7 @@ func main() {
 	}
 
 	if _, yes := ultima.(ui.Ultima); yes {
-		fmt.Printf("Thank you for using %s %s\n", ui.TextStyle.Render("Ultima Gateway"), ui.EnhanceText.Render("[Enhance]"))
+		s := fmt.Sprintf("Thank you for using %s %s\n", ui.TextStyle.Render("Ultima Gateway"), ui.EnhanceText.Render("[Enhance]"))
+		fmt.Print(ui.WhiteText.Render(s))
 	}
 }

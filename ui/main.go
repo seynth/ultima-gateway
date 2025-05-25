@@ -20,8 +20,6 @@ type JSON struct {
 type GenerateConfigKeyHash struct {
 	pureJson   string
 	configHash string
-	plusUrl    string
-	finalHash  string
 }
 
 type Ultima struct {
@@ -125,12 +123,11 @@ func (ult Ultima) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				ult.statusNext = "Starting chrome"
 				ult.completedStep = append(ult.completedStep, EnhanceText.Render("Dynamic Header Enabled"))
 			case 4:
-				ult.genConfKeyHash.finalHash = auxiliary.Sha256Encode([]byte(ult.genConfKeyHash.plusUrl))
+				ult.genConfKeyHash.configHash = auxiliary.Sha256Encode([]byte(ult.genConfKeyHash.pureJson))
 				ult.completed = true
 				return ult, auxiliary.StartChrome(
 					ult.jsonObject.StartURL,
 					ult.genConfKeyHash.configHash,
-					ult.genConfKeyHash.finalHash,
 					auxiliary.Sha256Encode([]byte("random")),
 				)
 
